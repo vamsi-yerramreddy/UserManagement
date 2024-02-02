@@ -10,7 +10,7 @@ public class Session extends  BaseModel{
 
     private String token;
     private Time expiryTime;
-    private User user;
+   // private User user;
     private boolean active;
 
 }

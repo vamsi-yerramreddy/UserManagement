@@ -14,12 +14,10 @@ import java.util.Optional;
 @Service
 public class AuthService {
 
-    private AuthController authController;
     private UserRepository userRepository;
 
     @Autowired
-    public AuthService(AuthController authController, UserRepository userRepository){
-        this.authController = authController;
+    public AuthService( UserRepository userRepository){
         this.userRepository = userRepository;
     }
 
