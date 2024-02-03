@@ -1,9 +1,6 @@
 package com.user.usermanagement.controller;
 
-import com.user.usermanagement.dto.LoginRequestDto;
-import com.user.usermanagement.dto.ResponseDto;
-import com.user.usermanagement.dto.SignUpRequestDto;
-import com.user.usermanagement.dto.UserDto;
+import com.user.usermanagement.dto.*;
 import com.user.usermanagement.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -27,10 +24,17 @@ public class AuthController {
     public ResponseEntity<ResponseDto> login(@RequestBody LoginRequestDto loginRequestDto){
         return authService.login(loginRequestDto.getEmailId(), loginRequestDto.getPassword());
     }
-        @PostMapping("/signup")
+    @PostMapping("/signup")
     public ResponseEntity<ResponseDto> signup(@RequestBody SignUpRequestDto signUpRequestDto){
         return authService.signup(signUpRequestDto.getEmailId(),
                 signUpRequestDto.getPassword());
+    }
+
+    @PostMapping("/validate")
+    public ResponseEntity<TokenResponseDto> validate(@RequestBody ValidateTokenRequestDto validateTokenRequestDto){
+
+     return authService.validate(validateTokenRequestDto.getToken(), validateTokenRequestDto.getUserId());
+
     }
 
 }
