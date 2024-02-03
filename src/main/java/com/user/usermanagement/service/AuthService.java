@@ -1,7 +1,5 @@
 package com.user.usermanagement.service;
 
-import ch.qos.logback.core.testUtil.RandomUtil;
-import com.user.usermanagement.controller.AuthController;
 import com.user.usermanagement.dto.ErrorResponseDto;
 import com.user.usermanagement.dto.ResponseDto;
 import com.user.usermanagement.dto.TokenResponseDto;
@@ -11,10 +9,16 @@ import com.user.usermanagement.model.SessionStatus;
 import com.user.usermanagement.model.User;
 import com.user.usermanagement.repository.SessionRepository;
 import com.user.usermanagement.repository.UserRepository;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.MacAlgorithm;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
 
+import javax.crypto.SecretKey;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 @Service
 public class AuthService {
@@ -36,8 +40,6 @@ public class AuthService {
             ResponseDto responseDto = new ResponseDto();
             responseDto.setUserDto(null);
             responseDto.setError(error);
-
-
             return new ResponseEntity<>(responseDto, HttpStatus.NOT_FOUND);
         }
         ResponseDto responseDto = new ResponseDto();
@@ -46,10 +48,12 @@ public class AuthService {
             responseDto.setError(null);
 
             Session session = new Session();
-            String Token = "Random token";
-            session.setToken(Token);
+
+            String Token = generateJwt(user.get());
+
             session.setStatus(SessionStatus.ACTIVE);
             session.setUser(user.get());
+            session.setToken(Token);
             sessionRepository.save(session);
             HttpHeaders headers = new HttpHeaders();
             headers.add("Session-token", Token);
@@ -84,11 +88,34 @@ public class AuthService {
 
     public ResponseEntity<TokenResponseDto> validate(String token, Long userId){
          Optional<Session> session=  sessionRepository.findByToken(token);
-         if(session.isPresent() &&
-         session.get().getUser().getId().equals(userId) ){
+            System.out.println("session: " + session);
+
+         //if(session.isPresent() &&
+         //session.get().getUser().getId().equals(userId) )
+         if(session.isPresent() ){
+             /*Decode the JWT token */
+              MacAlgorithm algorithm = Jwts.SIG.HS256;
+              SecretKey key = algorithm.key().build();
+
+             Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
+                System.out.println("claims: " + claims);
              return new ResponseEntity<>(new TokenResponseDto("Token is valid"), HttpStatus.OK);
          }else{
-             return new ResponseEntity<>(new TokenResponseDto("Token is invalid"), HttpStatus.UNAUTHORIZED);
+
+             return new ResponseEntity<>(new TokenResponseDto("Token is invalid"+ token), HttpStatus.UNAUTHORIZED);
          }
+    }
+
+    public String generateJwt(User user){
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("email", user.getEmailId());
+        payload.put("userId", user.getId());
+        payload.put("createdAt", System.currentTimeMillis());
+
+        MacAlgorithm algo = Jwts.SIG.HS256;
+        SecretKey key = algo.key().build();
+        
+        System.out.println("key: " + key);
+        return  Jwts.builder().content(payload.toString()).signWith(key,algo).compact();
     }
 }
