@@ -8,4 +8,6 @@ import lombok.Setter;
 public class ValidateTokenRequestDto {
     private String token;
     private Long userId;
+    private String emailId;
+
 }

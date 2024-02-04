@@ -4,10 +4,12 @@ import com.user.usermanagement.dto.*;
 import com.user.usermanagement.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @Controller
 @RequestMapping("/auth")
@@ -36,5 +38,14 @@ public class AuthController {
      return authService.validate(validateTokenRequestDto.getToken(), validateTokenRequestDto.getUserId());
 
     }
+    @PostMapping("/reset-password")
+    public ResponseEntity<?> passwordReset(@RequestParam @NonNull String  emailId){
+     return    authService.resetPassword(emailId);
+    }
+    @PostMapping("/reset-password/validate")
+    public ResponseEntity<?> validateResetPassword(@RequestBody ValidateTokenRequestDto validateTokenRequestDto){
+        return authService.resetPasswordConfirm(validateTokenRequestDto.getToken(), validateTokenRequestDto.getEmailId());
+    }
+
 
 }
