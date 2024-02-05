@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Controller
 @RequestMapping("/auth")
@@ -39,12 +36,13 @@ public class AuthController {
 
     }
     @PostMapping("/reset-password")
-    public ResponseEntity<?> passwordReset(@RequestParam @NonNull String  emailId){
-     return    authService.resetPassword(emailId);
+    public ResponseEntity<?> sendResetPasswordEmail(@RequestParam @NonNull String  emailId){
+     return    authService.sendResetPasswordEmail(emailId);
     }
-    @PostMapping("/reset-password/validate")
-    public ResponseEntity<?> validateResetPassword(@RequestBody ValidateTokenRequestDto validateTokenRequestDto){
-        return authService.resetPasswordConfirm(validateTokenRequestDto.getToken(), validateTokenRequestDto.getEmailId());
+    @GetMapping("/change-password")
+    public ResponseEntity<?> changePassword(@RequestParam @NonNull String token,
+                                            @RequestBody ResetPasswordRequestDto resetPasswordRequestDto){
+        return authService.changePassword(token, resetPasswordRequestDto.getNewPassword());
     }
 
 

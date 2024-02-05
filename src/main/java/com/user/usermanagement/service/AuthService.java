@@ -145,37 +145,44 @@ public class AuthService {
                 setClaims(payload).signWith(key,algo).compact();
     }
 
-    public ResponseEntity<?>  resetPassword(String emailId){
+    public ResponseEntity<?>  sendResetPasswordEmail(String emailId){
         Optional<User> user = userRepository.findUserByEmailId(emailId);
         if(user.isEmpty()){
             return new ResponseEntity<>(new ErrorResponseDto("User not found"), HttpStatus.NOT_FOUND);
 
-        }else{
+        }else {
+            Map<String, Object> claims = new HashMap<>();
+            claims.put("email", emailId);
+            claims.put("timeStamp", System.currentTimeMillis());
+
             String Token = Jwts.builder()
-                            .setSubject(emailId)
-                            .setExpiration(new Date(System.currentTimeMillis() + 20 * 60 * 1000 ))
-                            .signWith(key,algo)
-                            .compact();
-          //  PasswordResetToken passwordResetToken = new PasswordResetToken();
-            passwordResetToken.setToken(Token);
-            passwordResetToken.setUser(user.get());
-            passwordResetToken.setExpiryDate(new Date(System.currentTimeMillis() + 20 * 60 * 1000 ));
-            passwordResetTokenRepository.save(passwordResetToken);
-            sendResetPasswordEmail(emailId,Token);
-            return new ResponseEntity<>(new TokenResponseDto("Password reset link sent to your email"), HttpStatus.OK);
-        }
+                    .setClaims(claims)
+                    .setExpiration(new Date(System.currentTimeMillis() + 20 * 60 * 1000))
+                    .signWith(key, algo)
+                    .compact();
+            passwordResetTokenRepository.findByUser(user.get()).ifPresent(passwordResetTokenRepository::delete);
+
+                PasswordResetToken passwordResetToken = new PasswordResetToken();
+                passwordResetToken.setToken(Token);
+                passwordResetToken.setUser(user.get());
+                passwordResetToken.setExpiryDate(new Date(System.currentTimeMillis() + 20 * 60 * 1000));
+                passwordResetTokenRepository.save(passwordResetToken);
+                sendEmail(emailId, Token);
+                return new ResponseEntity<>(new TokenResponseDto("Password reset link sent to your email"), HttpStatus.OK);
+            }
+
     }
-    public void sendResetPasswordEmail(String emailId,String token  ){
+    public void sendEmail(String emailId,String token  ){
 
         SimpleMailMessage message= new SimpleMailMessage();
         message.setTo(emailId);
         message.setSubject("Password Reset Link");
-        String passwordResetLink = "http://localhost:8080/auth/reset?token="+token;
+        String passwordResetLink = "http://localhost:8080/auth/change-password?token="+token;
         message.setText("Click on the link to reset your password: " + passwordResetLink);
         javaMailSender.send(message);
     }
 
-public ResponseEntity<?> resetPasswordConfirm(String token, String newPassword){
+public ResponseEntity<?> changePassword(String token, String newPassword){
     Optional<PasswordResetToken> passwordResetToken = passwordResetTokenRepository.findByToken(token);
     if(passwordResetToken.isEmpty()){
         return new ResponseEntity<>(new ErrorResponseDto("Token is invalid"), HttpStatus.UNAUTHORIZED);

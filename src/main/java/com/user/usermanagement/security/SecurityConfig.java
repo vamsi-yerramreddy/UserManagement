@@ -1,4 +1,4 @@
-package com.user.usermanagement.security;
+/*package com.user.usermanagement.security;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -94,6 +94,7 @@ we need to implement the UserDetailService interface to provide the user details
         return new InMemoryUserDetailsManager(userDetails);
     }
 */
+/**
     @Bean
     public RegisteredClientRepository registeredClientRepository() {
         RegisteredClient oidcClient = RegisteredClient.withId(UUID.randomUUID().toString())
@@ -149,3 +150,4 @@ we need to implement the UserDetailService interface to provide the user details
     }
 
 }
+*/
